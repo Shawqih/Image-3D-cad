@@ -40,7 +40,9 @@ jobs:
         
       - name: Make gradlew executable
         working-directory: ./android
-        run: chmod +x gradlew
+        run: |
+          chmod +x gradlew
+          gradle wrapper
         
       - name: Build Android APK (Debug)
         working-directory: ./android
