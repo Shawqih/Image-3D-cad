@@ -1,0 +1,6 @@
+{
+  "name": "Image to 3D CAD",
+  "description": "Convert images to 3D height-map terrain models directly in the browser.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
