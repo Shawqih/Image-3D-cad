@@ -6,7 +6,8 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
   const githubRepo = process.env.GITHUB_REPOSITORY;
-  const base = githubRepo ? `/${githubRepo.split('/')[1]}/` : './';
+  const isAndroid = process.env.BUILD_TARGET === 'android';
+  const base = (githubRepo && !isAndroid) ? `/${githubRepo.split('/')[1]}/` : './';
 
   return {
     base,

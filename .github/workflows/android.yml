@@ -1,0 +1,49 @@
+name: Build Android App
+
+on:
+  push:
+    branches: ["main", "master"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install JavaScript Dependencies
+        run: npm ci
+        
+      - name: Build Web Assets (Vite)
+        run: npm run build
+        env:
+          BUILD_TARGET: android
+        
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          
+      - name: Sync Capacitor Android Project
+        run: npx cap sync android
+        
+      - name: Build Android APK
+        working-directory: ./android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+          
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dimension3D-Android-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
