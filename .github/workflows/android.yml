@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build APK
+    name: Build Android APK and AAB
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -38,14 +38,36 @@ jobs:
       - name: Sync Capacitor Android Project
         run: npx cap sync android
         
-      - name: Build Android APK
+      - name: Make gradlew executable
         working-directory: ./android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        run: chmod +x gradlew
+        
+      - name: Build Android APK (Debug)
+        working-directory: ./android
+        run: ./gradlew assembleDebug --stacktrace
+        
+      - name: Build Android Release Bundle (AAB - for Play Store)
+        working-directory: ./android
+        run: ./gradlew bundleRelease --stacktrace
+        
+      - name: Build Android Release APK (Unsigned)
+        working-directory: ./android
+        run: ./gradlew assembleRelease --stacktrace
           
-      - name: Upload Android APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: Dimension3D-Android-APK
+          name: Dimension3D-Debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          
+      - name: Upload Release Bundle (AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dimension3D-Release-AAB
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          
+      - name: Upload Release APK (Unsigned)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dimension3D-Release-APK-Unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
