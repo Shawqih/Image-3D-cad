@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
           
       - name: Install JavaScript Dependencies
-        run: npm ci
+        run: npm ci || npm install
         
       - name: Build Web Assets (Vite)
         run: npm run build
@@ -40,9 +40,7 @@ jobs:
         
       - name: Make gradlew executable
         working-directory: ./android
-        run: |
-          chmod +x gradlew
-          gradle wrapper
+        run: chmod +x gradlew
         
       - name: Build Android APK (Debug)
         working-directory: ./android

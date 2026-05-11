@@ -15,6 +15,8 @@ export class CadEngine {
   private wireframeMaterial: THREE.MeshBasicMaterial;
   private rawLuminance: Float32Array | null = null;
   private originalZ: Float32Array | null = null;
+  private blurTempBuffer: Float32Array | null = null;
+  private blurCurrentBuffer: Float32Array | null = null;
   private animationFrameId: number = 0;
   private gridHelper: THREE.GridHelper;
   
@@ -23,7 +25,7 @@ export class CadEngine {
 
   // Settings
   private size: number = 250;      
-  private resolution: number = 1536; // High accuracy 3D (2.3M vertices max)
+  private resolution: number = 1024; // High accuracy 3D (1M vertices max)
   private currentResolutionStr: string = '0 x 0';
   private currentHeightScale: number = 25;
   private currentSmoothing: number = 2;
@@ -46,7 +48,7 @@ export class CadEngine {
     this.renderer.setSize(container.clientWidth, container.clientHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     
@@ -379,8 +381,16 @@ export class CadEngine {
           this.originalZ.set(this.rawLuminance);
       } else {
           const radius = this.currentSmoothing;
-          const temp = new Float32Array(width * height);
-          let current = new Float32Array(this.rawLuminance);
+          if (!this.blurTempBuffer || this.blurTempBuffer.length !== width * height) {
+              this.blurTempBuffer = new Float32Array(width * height);
+          }
+          if (!this.blurCurrentBuffer || this.blurCurrentBuffer.length !== this.rawLuminance.length) {
+              this.blurCurrentBuffer = new Float32Array(this.rawLuminance.length);
+          }
+          
+          const temp = this.blurTempBuffer;
+          let current = this.blurCurrentBuffer;
+          current.set(this.rawLuminance);
           let next = this.originalZ;
 
           // 2 passes of separable box blur for Gaussian-like smoothing
