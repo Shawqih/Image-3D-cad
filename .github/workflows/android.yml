@@ -1,71 +1,31 @@
-name: Build Android App
+name: CI Build
 
 on:
-  push:
-    branches: ["main", "master"]
-  workflow_dispatch:
+  workflow_dispatch: {}
 
 jobs:
   build:
-    name: Build Android APK and AAB
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Source Code
+      - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: '18'
           cache: 'npm'
-          
-      - name: Install JavaScript Dependencies
-        run: npm ci || npm install
-        
-      - name: Build Web Assets (Vite)
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (production)
         run: npm run build
-        env:
-          BUILD_TARGET: android
-        
-      - name: Setup Java JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          
-      - name: Sync Capacitor Android Project
-        run: npx cap sync android
-        
-      - name: Make gradlew executable
-        working-directory: ./android
-        run: chmod +x gradlew
-        
-      - name: Build Android APK (Debug)
-        working-directory: ./android
-        run: ./gradlew assembleDebug --stacktrace
-        
-      - name: Build Android Release Bundle (AAB - for Play Store)
-        working-directory: ./android
-        run: ./gradlew bundleRelease --stacktrace
-        
-      - name: Build Android Release APK (Unsigned)
-        working-directory: ./android
-        run: ./gradlew assembleRelease --stacktrace
-          
-      - name: Upload Debug APK
+
+      - name: Upload dist artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Dimension3D-Debug-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          
-      - name: Upload Release Bundle (AAB)
-        uses: actions/upload-artifact@v4
-        with:
-          name: Dimension3D-Release-AAB
-          path: android/app/build/outputs/bundle/release/app-release.aab
-          
-      - name: Upload Release APK (Unsigned)
-        uses: actions/upload-artifact@v4
-        with:
-          name: Dimension3D-Release-APK-Unsigned
-          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+          name: dist
+          path: dist
